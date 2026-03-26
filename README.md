@@ -107,4 +107,4 @@ FinLedger follows a strict sequence for every transfer:
 
 ---
 
-Built with ❤️ by [Your Name/FinLedger Team]
+
