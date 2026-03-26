@@ -26,4 +26,9 @@ Thumbs.db
 backend-ledger/node_modules/
 frontend/node_modules/
 frontend/dist/
-c:\Users\singh\Transactions\FinLedger-Schema-Interview-Guide.pdf
+
+# Interview Guides (Keep local, ignore on Git)
+FinLedger-Controllers-Interview-Guide.txt
+FinLedger-Routes-Interview-Guide.txt
+FinLedger-Schema-Interview-Guide.pdf
+FinLedger-Schema-Interview-Guide.txt
