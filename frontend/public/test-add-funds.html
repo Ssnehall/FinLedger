@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test Add Funds</title>
+</head>
+
+<body>
+    <h1>Test Add Funds API</h1>
+    <button onclick="testAddFunds()">Test Add Funds</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testAddFunds() {
+            const token = localStorage.getItem('token');
+            const accountId = prompt('Enter account ID:');
+            const amount = 1000;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/accounts/add-funds', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ accountId, amount })
+                });
+
+                const data = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+                console.log('Success:', data);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>

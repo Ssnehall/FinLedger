@@ -1,0 +1,106 @@
+================================================================
+  FINLEDGER — MongoDB Schema Interview Guide
+  Backend: Node.js | Express | MongoDB | Mongoose | JWT Auth
+================================================================
+
+
+YOUR PROJECT HAS 5 MODELS
+--------------------------
+
+
+1. USER MODEL
+Collection: users
+Fields: email, name, password, systemUser, timestamps
+---------------------------------------------------------
+What to say:
+
+"The User model stores login credentials. Password is hashed
+automatically using a pre-save hook with bcrypt — so raw passwords
+are never stored in the database. I also have select: false on the
+password field so it is never accidentally returned in queries.
+The systemUser flag is immutable to prevent privilege escalation."
+
+
+2. ACCOUNT MODEL
+Collection: accounts
+Fields: user (ref: User), name, type, status, currency
+Special: getBalance() method
+---------------------------------------------------------
+What to say:
+
+"Each account belongs to a user via a reference. Type can be
+SAVINGS, CHECKING, or BUSINESS. Status can be ACTIVE, FROZEN,
+or CLOSED. The most important part is the getBalance() method —
+it does not store balance anywhere. Instead it runs a MongoDB
+aggregation on the Ledger collection, summing all CREDITs and
+DEBITs for that account and subtracting to get the live,
+always-accurate balance."
+
+
+3. TRANSACTION MODEL
+Collection: transactions
+Fields: fromAccount (ref: Account), toAccount (ref: Account),
+        amount, status, idempotencyKey (unique index)
+---------------------------------------------------------
+What to say:
+
+"A transaction records a fund transfer between two accounts.
+The idempotencyKey is unique — if the same request is retried
+due to a network failure, MongoDB throws a duplicate key error,
+so money is never debited twice. Status flows from
+PENDING -> COMPLETED or FAILED."
+
+
+4. LEDGER MODEL  [Core of the system]
+Collection: ledgers
+Fields: account (immutable), transaction (immutable),
+        type: CREDIT | DEBIT (immutable), amount (immutable)
+---------------------------------------------------------
+What to say:
+
+"This is the heart of the system. Every transfer creates two
+ledger entries — a DEBIT on the sender's account and a CREDIT
+on the receiver's. All four fields are marked immutable, so they
+cannot be changed after creation. I also added pre-hooks on
+update, delete, and findOneAndUpdate that throw an error if
+anyone tries to modify a ledger entry — full tamper protection."
+
+
+5. TOKEN BLACKLIST MODEL
+Collection: tokenblacklists
+Fields: token (unique), timestamps
+Special: TTL index — auto-deletes after 3 days
+---------------------------------------------------------
+What to say:
+
+"When a user logs out, their JWT token is saved here. Every
+protected route checks this blacklist before processing the
+request. I added a MongoDB TTL (Time-To-Live) index — entries
+auto-delete after 3 days, which matches the JWT expiry, so
+the collection never grows out of control."
+
+
+================================================================
+  MODEL RELATIONSHIPS — SAY THIS AT THE END
+================================================================
+
+  User --< Account --< Ledger >-- Transaction
+
+"One user can have many accounts. Each account has many ledger
+entries. Each ledger entry points to one transaction. A single
+transaction always has exactly two ledger entries — that is the
+double-entry principle."
+
+
+================================================================
+  PRO TIP — COMMON INTERVIEWER FOLLOW-UP
+================================================================
+
+Q: "Why not just store the balance directly on the account?"
+
+A: "Because storing balance creates a race condition risk if two
+   transfers happen simultaneously. Computing it from immutable
+   ledger entries is always accurate and gives a full,
+   tamper-proof audit trail of every transaction."
+
+================================================================
